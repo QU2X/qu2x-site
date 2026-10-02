@@ -6,32 +6,35 @@
 <title>QU2X — Business Services</title>
 <meta name="description" content="QU2X Business Services">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root { --bg:#000; --fg:#fff; --dim:rgba(255,255,255,.55); }
+  :root { --bg:#000; --fg:#fff; --dim:rgba(255,255,255,.62); --w:min(86vw,880px); }
   * { box-sizing:border-box; margin:0; }
   html,body { height:100%; }
   body { background:var(--bg); color:var(--fg); font-family:'Orbitron',sans-serif;
     display:flex; flex-direction:column; align-items:center; justify-content:center;
-    min-height:100vh; padding:24px 16px; text-align:center; }
+    min-height:100vh; padding:24px 16px; text-align:center; overflow-x:hidden; }
   main { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%; }
-  #logo { width:min(78vw,880px); height:auto; }
+  #logo { width:var(--w); height:auto; overflow:visible; }
   #logo .s { fill:var(--fg); opacity:0; transition:opacity .45s ease; }
-  #logo .l { stroke:var(--fg); fill:none; opacity:0; transition:opacity .45s ease; }
   #logo .on { opacity:1; }
-  h1 { font-weight:400; font-size:clamp(11px,2.6vw,34px); letter-spacing:.55em; margin:3.5vw 0 0 .55em;
+  #logo.ready > g, #logo.ready > rect { transition:transform .5s ease, opacity .45s ease; }
+  #logo .tail { stroke:var(--bg); stroke-width:14; paint-order:stroke; stroke-linejoin:miter; stroke-miterlimit:4; }
+  #logo .cut { stroke:var(--bg); stroke-width:8; }
+  h1 { font-weight:400; font-size:calc(var(--w)*.036); letter-spacing:.5em; margin:calc(var(--w)*.075) 0 0 .5em;
     white-space:pre; min-height:1.2em; transition:transform .45s ease; }
-  footer { display:flex; flex-direction:column; align-items:center; gap:22px; padding-bottom:12px; }
-  .mail { color:var(--fg); font-family:'Share Tech Mono',monospace;
-    font-size:clamp(14px,1.6vw,20px); letter-spacing:.3em; cursor:text;
-    -webkit-user-select:all; user-select:all; }
+  footer { display:flex; flex-direction:column; align-items:center; gap:24px; padding-bottom:12px; }
+  .mail { font-family:'Barlow',sans-serif; font-weight:500; font-size:clamp(14px,1.15vw,19px);
+    letter-spacing:.3em; margin-right:-.3em; cursor:text; -webkit-user-select:all; user-select:all; }
   hr { width:40px; border:0; border-top:1px solid var(--dim); }
-  small { font-size:10px; letter-spacing:.25em; color:var(--dim); text-transform:uppercase; }
+  small { font-family:'Barlow',sans-serif; font-weight:500; font-size:clamp(8px,.6vw,10px);
+    letter-spacing:.24em; color:var(--dim); text-transform:uppercase; }
 </style>
 </head>
 <body>
 <main>
-  <svg id="logo" viewBox="0 0 880 170" role="img" aria-label="QU2X"></svg>
+  <svg id="logo" viewBox="0 0 893 232" role="img" aria-label="QU2X"></svg>
   <h1 id="tag">BUSINESS SERVICES</h1>
 </main>
 <footer>
@@ -42,7 +45,7 @@
 <script>
 (() => {
   const svg = document.getElementById('logo'), NS = 'http://www.w3.org/2000/svg';
-  const t = 16, W = 100, STEP = 140;
+  const t = 30, W = 197, H = 232, STEP = 232;
   const HOLD_MS = 4000;      // сколько показывать время
   const SCRAMBLE_MS = 700;   // «перемешивание» перед логотипом
 
@@ -51,42 +54,79 @@
     for (const k in attrs) e.setAttribute(k, attrs[k]);
     parent.appendChild(e); return e;
   };
+  // шестиугольные сегменты со скошенными концами
   const h = (cx, cy, L) => [[-L/2,0],[-L/2+t/2,-t/2],[L/2-t/2,-t/2],[L/2,0],[L/2-t/2,t/2],[-L/2+t/2,t/2]]
     .map(([x,y]) => `${cx+x},${cy+y}`).join(' ');
   const v = (cx, cy, L) => [[0,-L/2],[t/2,-L/2+t/2],[t/2,L/2-t/2],[0,L/2],[-t/2,L/2-t/2],[-t/2,-L/2+t/2]]
     .map(([x,y]) => `${cx+x},${cy+y}`).join(' ');
+  const cx = W/2, hl = W - 46, vl = 86;
   const seg = {
-    a:h(50,8,80), g:h(50,85,80), d:h(50,162,80),
-    f:v(8,46,70), b:v(92,46,70), e:v(8,124,70), c:v(92,124,70)
+    a:h(cx,16,hl), g:h(cx,H/2,hl), d:h(cx,H-16,hl),
+    f:'16,23 31,38 31,106 1,118 1,38', e:'1,126 31,114 31,194 16,209 1,194',
+    b:'181,23 196,38 196,118 166,106 166,38', c:'196,126 166,114 166,194 181,209 196,194'
   };
+  // у «2» вертикальные сегменты остаются остроконечными
+  const segPointed = {...seg, f:v(16,66,vl), b:v(W-16,66,vl), e:v(16,H-66,vl), c:v(W-16,H-66,vl)};
+  // у «U» верхние балки чуть длиннее
+  const segU = {...seg, f:'16,11 31,26 31,106 1,118 1,26', b:'181,11 196,26 196,118 166,106 166,26'};
+  const gShort = h(cx-8, H/2, hl-16);   // средняя балка короче справа («3», «4»)
+  const gShortB = h(cx, H/2, hl-32);    // средняя балка короче с обеих сторон («8»)
+  const gShortL = h(cx+8, H/2, hl-16);  // средняя балка короче слева («6»)
+  // какие вертикальные сегменты остроконечные у цифр (как в «2»)
+  const POINTED = {abged:'fbec', fgbc:'f', afgcd:'fc', afgedc:'c', abcdfg:'f', abcdefg:'fbec'};
+  // у «1», «4» правые балки выше (до уровня верха и низа «2» и «3»)
+  const tallR = {b:'181,1 196,16 196,118 166,106 166,16', c:'196,126 166,114 166,216 181,231 196,216'};
+  const TALL = ['bc', 'fgbc'];
+  const tallF4 = '16,1 31,16 31,94 16,109 1,94 1,16';   // левая балка «4» до высоты правой
+  const b7 = '181,31 196,46 196,118 166,106 166,46';   // правая верхняя балка «7» чуть ниже
   const DIGITS = ['abcdef','bc','abged','abgcd','fgbc','afgcd','afgedc','abc','abcdefg','abcdfg'];
-  const LOGO = ['abcdef' + 'q', 'bcdef', 'abged', 'x'];   // Q U 2 X
-  const lineDefs = {
-    q:[[[60,122,98,168]]],
-    x:[[[8,0,46,80],[54,90,92,170],[92,0,54,80],[46,90,8,170]]]
-  };
+  const LOGO = ['abcdefq', 'bcdef', 'abged', 'x'];   // Q U 2 X
 
-  // 4 позиции символов
   const slots = [];
   for (let i = 0; i < 4; i++) {
-    const g = add('g', {transform:`translate(${i*STEP + (i>1 ? 0 : 0)},0)`});
+    const g = add('g', {});
+    g.style.transform = `translate(${i*STEP}px,0)`;
     const el = {};
-    for (const k in seg) el[k] = add('polygon', {class:'s', points:seg[k]}, g);
-    el.q = add('line', {class:'l', x1:60,y1:122,x2:98,y2:168,'stroke-width':t+2}, g);
-    el.x = [[8,0,46,80],[54,90,92,170],[92,0,54,80],[46,90,8,170]]
-      .map(([x1,y1,x2,y2]) => add('line', {class:'l', x1,y1,x2,y2,'stroke-width':t+2}, g));
+    const shapes = i === 2 ? segPointed : i === 1 ? segU : seg;
+    for (const k in seg) el[k] = add('polygon', {class:'s', points:shapes[k]}, g);
+    el.shapes = shapes; el.grp = g;
+    // хвост Q
+    // хвост Q: ровно 45°, проходит через правый нижний угол; чёрная обводка даёт одинаковый зазор
+    const q0 = -48, q1 = 50, qc = [156, 203], r2 = Math.SQRT1_2;
+    const qp = [[q0,-t/2],[q1,-t/2],[q1,t/2],[q0,t/2]]
+      .map(([a,b]) => `${qc[0]+(a-b)*r2},${qc[1]+(a+b)*r2}`).join(' ');
+    el.q = add('polygon', {class:'s tail', points:qp}, g);
+    // X: две диагонали с плоскими концами, в центре разрез крестом
+    const xg = add('g', {class:'s'}, g);
+    // X: четыре диагональных сегмента той же формы и толщины, что и остальные
+    for (const [sx, sy] of [[1,1],[-1,1],[1,-1],[-1,-1]]) {
+      const ox = cx - sx*(cx-4), oy = H/2 - sy*H/2;
+      const D = Math.hypot(ox-cx, oy-H/2), ux = (ox-cx)/D, uy = (oy-H/2)/D, gap = -t;
+      const pts = [[gap,0],[gap+t/2,-t/2],[D-t/2,-t/2],[D,0],[D-t/2,t/2],[gap+t/2,t/2]]
+        .map(([a,b]) => `${cx+a*ux-b*uy},${H/2+a*uy+b*ux}`).join(' ');
+      add('polygon', {points:pts}, xg);
+    }
+    // крестообразный зазор в центре
+    add('line', {class:'cut', style:'stroke-width:17', x1:cx, y1:H/2-125, x2:cx, y2:H/2+125}, xg);
+    add('line', {class:'cut', x1:cx-105, y1:H/2, x2:cx+105, y2:H/2}, xg);
+    el.x = xg;
     slots.push(el);
   }
-  // двоеточие между 2-й и 3-й позицией
-  const cx = 2*STEP - (STEP - W)/2;
-  const colon = [55, 115].map(cy => add('rect', {class:'s', x:cx-t/2, y:cy-t/2, width:t, height:t}));
-  svg.setAttribute('viewBox', `-4 -4 ${3*STEP + W + 8} 178`);
+  // двоеточие: между 2-й и 3-й цифрой, положение задаётся в layoutTime()
+  const colon = [78, 156].map(cy => add('rect', {class:'s', x:0, y:cy-13, width:26, height:26}));
 
   const setSlot = (i, spec) => {
     const el = slots[i];
     for (const k of 'abcdefg') el[k].classList.toggle('on', spec.includes(k));
+    // цифра 2 всегда с остроконечными боковыми сегментами, как «2» в логотипе
+    el.g.setAttribute('points', (spec === 'abgcd' || spec === 'fgbc' || spec === 'abcdfg') ? gShort : spec === 'afgedc' ? gShortL : spec === 'abcdefg' ? gShortB : seg.g);
+    for (const k of 'fbec') el[k].setAttribute('points', ((POINTED[spec] || '').includes(k) ? segPointed : el.shapes)[k]);
+    if (TALL.includes(spec)) for (const k of 'bc') el[k].setAttribute('points', tallR[k]);
+    if (spec === 'abc') el.b.setAttribute('points', b7);
+    if (spec === 'abc') el.c.setAttribute('points', tallR.c);   // у «7» нижняя балка до нижней линии, как у «1» и «4»
+    if (spec === 'fgbc') el.f.setAttribute('points', tallF4);
     el.q.classList.toggle('on', spec.includes('q'));
-    el.x.forEach(l => l.classList.toggle('on', spec === 'x'));
+    el.x.classList.toggle('on', spec === 'x');
   };
   const setColon = on => colon.forEach(c => c.classList.toggle('on', on));
 
@@ -95,6 +135,7 @@
     return [...String(d.getHours()).padStart(2,'0') + String(d.getMinutes()).padStart(2,'0')]
       .map(n => DIGITS[+n]);
   };
+
   // подпись: дата -> BUSINESS SERVICES
   const tag = document.getElementById('tag');
   const TARGET = 'BUSINESS SERVICES';
@@ -118,28 +159,45 @@
     return out;
   };
 
-  // сдвиг подписи к визуальному центру цифр времени (у «1» сегменты только справа)
-  const alignTag = specs => {
+  // раскладка времени по реальным границам цифр: равные промежутки, двоеточие по центру
+  const VB_CENTER = 446.5, GAP = 40, GAP_COLON = 36, COLON_W = 26;
+  const ink = i => {
     let lo = Infinity, hi = -Infinity;
-    specs.forEach((s, i) => {
-      const L = /[fe]/.test(s) ? 0 : /[agd]/.test(s) ? 10 : 84;
-      const R = /[bc]/.test(s) ? 100 : /[agd]/.test(s) ? 90 : 16;
-      lo = Math.min(lo, i*STEP + L); hi = Math.max(hi, i*STEP + R);
-    });
-    const vb = svg.viewBox.baseVal, k = svg.getBoundingClientRect().width / vb.width;
-    const off = specs ? ((lo + hi) / 2 - (vb.x + vb.width / 2)) * k : 0;
-    tag.style.transform = `translateX(${off}px)`;
+    for (const k of 'abcdefg') {
+      const p = slots[i][k];
+      if (!p.classList.contains('on')) continue;
+      const b = p.getBBox();
+      lo = Math.min(lo, b.x); hi = Math.max(hi, b.x + b.width);
+    }
+    return [lo, hi];
+  };
+  const layoutTime = () => {
+    const r = [0,1,2,3].map(ink), w = r.map(([lo, hi]) => hi - lo);
+    const total = w.reduce((a, b) => a + b, 0) + COLON_W + 2*GAP + 2*GAP_COLON;
+    let x = VB_CENTER - total/2;
+    const place = (i, left) => { slots[i].grp.style.transform = `translate(${left - r[i][0]}px,0)`; };
+    place(0, x); x += w[0] + GAP;
+    place(1, x); x += w[1] + GAP_COLON;
+    colon.forEach(c => c.style.transform = `translate(${x}px,0)`); x += COLON_W + GAP_COLON;
+    place(2, x); x += w[2] + GAP;
+    place(3, x);
+  };
+  const layoutLogo = () => {
+    slots.forEach((el, i) => el.grp.style.transform = `translate(${i*STEP}px,0)`);
   };
 
   const render = () => {
-    const specs = timeSpecs();
-    specs.forEach((s, i) => setSlot(i, s));
-    tag.textContent = dateText();
-    alignTag(specs);
+    timeSpecs().forEach((s, i) => setSlot(i, s));
+    const dt = dateText();
+    tag.textContent = dt;
+    // нечётное число пробелов по краям: сдвигаем на пол-пробела, чтобы дата стояла по центру
+    tag.style.transform = ((TARGET.length - dt.trim().length) % 2) ? 'translateX(.4em)' : 'translateX(0)';
+    layoutTime();
   };
 
   let tick = 0, blink = 0;
   render(); setColon(true);
+  requestAnimationFrame(() => requestAnimationFrame(() => svg.classList.add('ready')));
   tick = setInterval(render, 1000);
   blink = setInterval(() => colon.forEach(c => c.classList.toggle('on')), 500);
 
@@ -148,6 +206,7 @@
     setColon(false);
     const rnd = () => DIGITS[Math.random()*10|0];
     const from = dateText(), t0 = performance.now();
+    layoutLogo();
     tag.style.transform = 'translateX(0)';
     const sc = setInterval(() => {
       slots.forEach((_, i) => setSlot(i, rnd()));
