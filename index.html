@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>QU2X — Business Services</title>
+<meta name="description" content="QU2X Business Services">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#000; --fg:#fff; --dim:rgba(255,255,255,.55); }
+  * { box-sizing:border-box; margin:0; }
+  html,body { height:100%; }
+  body { background:var(--bg); color:var(--fg); font-family:'Orbitron',sans-serif;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    min-height:100vh; padding:24px 16px; text-align:center; }
+  main { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%; }
+  #logo { width:min(78vw,880px); height:auto; }
+  #logo .s { fill:var(--fg); opacity:0; transition:opacity .45s ease; }
+  #logo .l { stroke:var(--fg); fill:none; opacity:0; transition:opacity .45s ease; }
+  #logo .on { opacity:1; }
+  h1 { font-weight:400; font-size:clamp(11px,2.6vw,34px); letter-spacing:.55em; margin:3.5vw 0 0 .55em;
+    white-space:pre; min-height:1.2em; transition:transform .45s ease; }
+  footer { display:flex; flex-direction:column; align-items:center; gap:22px; padding-bottom:12px; }
+  .mail { color:var(--fg); font-family:'Share Tech Mono',monospace;
+    font-size:clamp(14px,1.6vw,20px); letter-spacing:.3em; cursor:text;
+    -webkit-user-select:all; user-select:all; }
+  hr { width:40px; border:0; border-top:1px solid var(--dim); }
+  small { font-size:10px; letter-spacing:.25em; color:var(--dim); text-transform:uppercase; }
+</style>
+</head>
+<body>
+<main>
+  <svg id="logo" viewBox="0 0 880 170" role="img" aria-label="QU2X"></svg>
+  <h1 id="tag">BUSINESS SERVICES</h1>
+</main>
+<footer>
+  <span class="mail">contact@qu2x.com</span>
+  <hr>
+  <small>© 2026 QU2X. All rights reserved.</small>
+</footer>
+<script>
+(() => {
+  const svg = document.getElementById('logo'), NS = 'http://www.w3.org/2000/svg';
+  const t = 16, W = 100, STEP = 140;
+  const HOLD_MS = 4000;      // сколько показывать время
+  const SCRAMBLE_MS = 700;   // «перемешивание» перед логотипом
+
+  const add = (tag, attrs, parent = svg) => {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    parent.appendChild(e); return e;
+  };
+  const h = (cx, cy, L) => [[-L/2,0],[-L/2+t/2,-t/2],[L/2-t/2,-t/2],[L/2,0],[L/2-t/2,t/2],[-L/2+t/2,t/2]]
+    .map(([x,y]) => `${cx+x},${cy+y}`).join(' ');
+  const v = (cx, cy, L) => [[0,-L/2],[t/2,-L/2+t/2],[t/2,L/2-t/2],[0,L/2],[-t/2,L/2-t/2],[-t/2,-L/2+t/2]]
+    .map(([x,y]) => `${cx+x},${cy+y}`).join(' ');
+  const seg = {
+    a:h(50,8,80), g:h(50,85,80), d:h(50,162,80),
+    f:v(8,46,70), b:v(92,46,70), e:v(8,124,70), c:v(92,124,70)
+  };
+  const DIGITS = ['abcdef','bc','abged','abgcd','fgbc','afgcd','afgedc','abc','abcdefg','abcdfg'];
+  const LOGO = ['abcdef' + 'q', 'bcdef', 'abged', 'x'];   // Q U 2 X
+  const lineDefs = {
+    q:[[[60,122,98,168]]],
+    x:[[[8,0,46,80],[54,90,92,170],[92,0,54,80],[46,90,8,170]]]
+  };
+
+  // 4 позиции символов
+  const slots = [];
+  for (let i = 0; i < 4; i++) {
+    const g = add('g', {transform:`translate(${i*STEP + (i>1 ? 0 : 0)},0)`});
+    const el = {};
+    for (const k in seg) el[k] = add('polygon', {class:'s', points:seg[k]}, g);
+    el.q = add('line', {class:'l', x1:60,y1:122,x2:98,y2:168,'stroke-width':t+2}, g);
+    el.x = [[8,0,46,80],[54,90,92,170],[92,0,54,80],[46,90,8,170]]
+      .map(([x1,y1,x2,y2]) => add('line', {class:'l', x1,y1,x2,y2,'stroke-width':t+2}, g));
+    slots.push(el);
+  }
+  // двоеточие между 2-й и 3-й позицией
+  const cx = 2*STEP - (STEP - W)/2;
+  const colon = [55, 115].map(cy => add('rect', {class:'s', x:cx-t/2, y:cy-t/2, width:t, height:t}));
+  svg.setAttribute('viewBox', `-4 -4 ${3*STEP + W + 8} 178`);
+
+  const setSlot = (i, spec) => {
+    const el = slots[i];
+    for (const k of 'abcdefg') el[k].classList.toggle('on', spec.includes(k));
+    el.q.classList.toggle('on', spec.includes('q'));
+    el.x.forEach(l => l.classList.toggle('on', spec === 'x'));
+  };
+  const setColon = on => colon.forEach(c => c.classList.toggle('on', on));
+
+  const timeSpecs = () => {
+    const d = new Date();
+    return [...String(d.getHours()).padStart(2,'0') + String(d.getMinutes()).padStart(2,'0')]
+      .map(n => DIGITS[+n]);
+  };
+  // подпись: дата -> BUSINESS SERVICES
+  const tag = document.getElementById('tag');
+  const TARGET = 'BUSINESS SERVICES';
+  const MONTHS = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
+  const center = s => {
+    const pad = Math.max(0, TARGET.length - s.length), l = pad >> 1;
+    return ' '.repeat(l) + s + ' '.repeat(pad - l);
+  };
+  const dateText = () => {
+    const d = new Date();
+    return center(`${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`);
+  };
+  const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  const scrambleText = (from, to, p) => {
+    let out = '';
+    for (let i = 0; i < to.length; i++) {
+      const a = from[i] || ' ', b = to[i];
+      if (p >= 1 || i / to.length < (p - .3) / .7) out += b;
+      else out += (a === ' ' && b === ' ') ? ' ' : CHARS[Math.random()*CHARS.length|0];
+    }
+    return out;
+  };
+
+  // сдвиг подписи к визуальному центру цифр времени (у «1» сегменты только справа)
+  const alignTag = specs => {
+    let lo = Infinity, hi = -Infinity;
+    specs.forEach((s, i) => {
+      const L = /[fe]/.test(s) ? 0 : /[agd]/.test(s) ? 10 : 84;
+      const R = /[bc]/.test(s) ? 100 : /[agd]/.test(s) ? 90 : 16;
+      lo = Math.min(lo, i*STEP + L); hi = Math.max(hi, i*STEP + R);
+    });
+    const vb = svg.viewBox.baseVal, k = svg.getBoundingClientRect().width / vb.width;
+    const off = specs ? ((lo + hi) / 2 - (vb.x + vb.width / 2)) * k : 0;
+    tag.style.transform = `translateX(${off}px)`;
+  };
+
+  const render = () => {
+    const specs = timeSpecs();
+    specs.forEach((s, i) => setSlot(i, s));
+    tag.textContent = dateText();
+    alignTag(specs);
+  };
+
+  let tick = 0, blink = 0;
+  render(); setColon(true);
+  tick = setInterval(render, 1000);
+  blink = setInterval(() => colon.forEach(c => c.classList.toggle('on')), 500);
+
+  setTimeout(() => {
+    clearInterval(tick); clearInterval(blink);
+    setColon(false);
+    const rnd = () => DIGITS[Math.random()*10|0];
+    const from = dateText(), t0 = performance.now();
+    tag.style.transform = 'translateX(0)';
+    const sc = setInterval(() => {
+      slots.forEach((_, i) => setSlot(i, rnd()));
+      tag.textContent = scrambleText(from, TARGET, Math.min(.99, (performance.now() - t0) / SCRAMBLE_MS));
+    }, 60);
+    setTimeout(() => {
+      clearInterval(sc);
+      LOGO.forEach((s, i) => setSlot(i, s));
+      tag.textContent = TARGET;
+    }, SCRAMBLE_MS);
+  }, HOLD_MS);
+})();
+</script>
+</body>
+</html>
